@@ -92,6 +92,15 @@ function getRandomCards(arr, n) {
 }
 
 function GameScreen({ timer, stage }) {
+  // Responsive: detect mobile screen
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 900 : false);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 900);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   // Show new round image for 3 seconds at the start of each round
   const [showNewRound, setShowNewRound] = useState(false);
   useEffect(() => {
@@ -319,22 +328,24 @@ function GameScreen({ timer, stage }) {
           </table>
         </div>
       </div>
-      {/* Right Panel */}
-      <div className="right-panel">
-        <div className="my-bet-header">
-          My Bet <span style={{ float: "right" }}>Bal:0</span>
+      {/* Right Panel: Hide on mobile */}
+      {!isMobile && (
+        <div className="right-panel">
+          <div className="my-bet-header">
+            My Bet <span style={{ float: "right" }}>Bal:0</span>
+          </div>
+          <table className="my-bet-table">
+            <thead>
+              <tr>
+                <th>Matched Bet</th>
+                <th>Odds</th>
+                <th>Stake</th>
+              </tr>
+            </thead>
+            <tbody>{/* Empty for now */}</tbody>
+          </table>
         </div>
-        <table className="my-bet-table">
-          <thead>
-            <tr>
-              <th>Matched Bet</th>
-              <th>Odds</th>
-              <th>Stake</th>
-            </tr>
-          </thead>
-          <tbody>{/* Empty for now */}</tbody>
-        </table>
-      </div>
+      )}
     </div>
   );
 }
