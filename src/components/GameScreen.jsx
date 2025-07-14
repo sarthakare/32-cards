@@ -1,5 +1,7 @@
+import crownImg from "../assets/images/crown.png";
 import React, { useMemo, useState, useEffect } from "react";
 import tableImg from "../assets/images/worli-bg.jpg";
+import newRoundImg from "../assets/images/New_Round.svg";
 import welcomeGif from "../assets/images/Indian01_Welcome.gif";
 import idleGif from "../assets/images/Indian01_idle.gif";
 import clappingGif from "../assets/images/Indian01_Clapping.gif";
@@ -90,6 +92,17 @@ function getRandomCards(arr, n) {
 }
 
 function GameScreen({ timer, stage }) {
+  // Show new round image for 3 seconds at the start of each round
+  const [showNewRound, setShowNewRound] = useState(false);
+  useEffect(() => {
+    if (stage === 0) {
+      setShowNewRound(true);
+      const timeout = setTimeout(() => setShowNewRound(false), 3000);
+      return () => clearTimeout(timeout);
+    } else {
+      setShowNewRound(false);
+    }
+  }, [stage]);
   let gifToShow = welcomeGif;
   if (stage === 1) gifToShow = idleGif;
   if (stage === 2) gifToShow = clappingGif;
@@ -137,7 +150,24 @@ function GameScreen({ timer, stage }) {
             Round ID: V32C11751270914 | Player History
           </span>
         </div>
-        <div className="table-parent">
+        <div className="table-parent" style={{ position: 'relative' }}>
+          {/* Show New Round image overlay for 3 seconds at round start */}
+          {showNewRound && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: 30,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.5)'
+            }}>
+              <img src={newRoundImg} alt="New Round" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+          )}
           <img src={tableImg} alt="table" className="table-image" />
           <div className="table-cards">
             <div className="table-cards-row">
@@ -180,6 +210,55 @@ function GameScreen({ timer, stage }) {
                 {String(timer).padStart(2, "0")}
               </span>
             </div>
+            {/* Show crown and winner after all cards are revealed and clappingGif is shown */}
+            {stage === 2 && revealedCount >= 4 && (() => {
+              // Calculate total values for all cards
+              const totals = cardLabels.map((card, idx) => {
+                let showValue = 0;
+                if (showRandomCards && randomCards[idx]) {
+                  const file = randomCards[idx];
+                  let val = file.replace(/[^A-Z0-9]/gi, "").replace(/(CC|DD|HH|SS).*$/, "");
+                  if (["J"].includes(val)) showValue = 11;
+                  else if (["Q"].includes(val)) showValue = 12;
+                  else if (["K"].includes(val)) showValue = 13;
+                  else showValue = Number(val);
+                }
+                return Number(card.count) + Number(showValue);
+              });
+              // Find the index of the highest total value
+              const maxValue = Math.max(...totals);
+              const winnerIdx = totals.indexOf(maxValue);
+              const winnerLabel = cardLabels[winnerIdx]?.label || "";
+              return (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(0,0,0,0.5)',
+                  zIndex: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '48px 64px',
+                    borderRadius: 24,
+                    background: 'rgba(0,0,0,0.7)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  }}>
+                    <img src={crownImg} alt="Crown" style={{ width: 96, height: 96, marginBottom: 24 }} />
+                    <span style={{ fontSize: 48, color: '#ffd700', fontWeight: 900, letterSpacing: 2, marginBottom: 16, textShadow: '2px 2px 12px #000' }}>Winner</span>
+                    <span style={{ fontSize: 40, color: '#fff', fontWeight: 800, textShadow: '2px 2px 12px #000' }}>{winnerLabel}</span>
+                  </div>
+                </div>
+              );
+            })()}
             {stage === 0 && (
               <div
                 className="place-bets-now"
