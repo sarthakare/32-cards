@@ -72,10 +72,10 @@ const oddsData = [
 ];
 
 const cardLabels = [
-  { label: "8+", count: 0 },
-  { label: "9+", count: 0 },
-  { label: "10+", count: 0 },
-  { label: "11+", count: 0 },
+  { label: "8+", count: 8 },
+  { label: "9+", count: 9 },
+  { label: "10+", count: 10 },
+  { label: "11+", count: 11 },
 ];
 
 function getRandomCards(arr, n) {
@@ -144,17 +144,36 @@ function GameScreen({ timer, stage }) {
               <img src={gifToShow} alt="Welcome" className="welcome-gif" />
             </div>
             <div className="table-cards-row cards-row">
-              {cardLabels.map((card, idx) => (
-                <div className="table-card" key={idx}>
-                  <div className="card-label">{card.label}</div>
-                  <img
-                    src={showRandomCards && randomCards[idx] && idx < revealedCount && cardImages[randomCards[idx]] ? cardImages[randomCards[idx]] : closedCard}
-                    alt="Card"
-                    className="card-value-img"
-                  />
-                  <div className="card-count">{card.count}</div>
-                </div>
-              ))}
+              {cardLabels.map((card, idx) => {
+                // Determine the value to show at card-count
+                let showValue = 0;
+                if (showRandomCards && randomCards[idx] && idx < revealedCount) {
+                  const file = randomCards[idx];
+                  let val = file.replace(/[^A-Z0-9]/gi, "").replace(/(CC|DD|HH|SS).*$/, "");
+                  if (["J"].includes(val)) showValue = 11;
+                  else if (["Q"].includes(val)) showValue = 12;
+                  else if (["K"].includes(val)) showValue = 13;
+                  else showValue = Number(val);
+                }
+                // Add the default value from cardLabels to showValue, but only after reveal
+                let totalValue = 0;
+                if (showRandomCards && randomCards[idx] && idx < revealedCount) {
+                  totalValue = Number(card.count) + Number(showValue);
+                }
+                return (
+                  <div className="table-card" key={idx}>
+                    <div className="card-label">{card.label}</div>
+                    <img
+                      src={showRandomCards && randomCards[idx] && idx < revealedCount && cardImages[randomCards[idx]] ? cardImages[randomCards[idx]] : closedCard}
+                      alt="Card"
+                      className="card-value-img"
+                    />
+                    <div className="card-count" style={{ fontSize: 16, color: '#ff6600', fontWeight: 700 }}>
+                      {totalValue}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <div className="table-timer">
               <span className="flip-clock">
