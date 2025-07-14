@@ -113,7 +113,7 @@ function Game() {
           </div>
           <button className="open-bets">OPEN BETS</button>
           <span className="balance">
-            0.00{" "}
+            0.00 $
             <span role="img" aria-label="user">
               👤
             </span>

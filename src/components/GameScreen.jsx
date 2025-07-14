@@ -1,9 +1,68 @@
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import tableImg from "../assets/images/worli-bg.jpg";
 import welcomeGif from "../assets/images/Indian01_Welcome.gif";
 import idleGif from "../assets/images/Indian01_idle.gif";
 import clappingGif from "../assets/images/Indian01_Clapping.gif";
+
+// Vite/ESM compatible import for all card images
+import QSS from "../assets/images/cards/QSS.webp";
+import QHH from "../assets/images/cards/QHH.webp";
+import QDD from "../assets/images/cards/QDD.webp";
+import QCC from "../assets/images/cards/QCC.webp";
+import KSS from "../assets/images/cards/KSS.webp";
+import KHH from "../assets/images/cards/KHH.webp";
+import KDD from "../assets/images/cards/KDD.webp";
+import KCC from "../assets/images/cards/KCC.webp";
+import JSS from "../assets/images/cards/JSS.webp";
+import JHH from "../assets/images/cards/JHH.webp";
+import JDD from "../assets/images/cards/JDD.webp";
+import JCC from "../assets/images/cards/JCC.webp";
+import S9S from "../assets/images/cards/9SS.webp";
+import S9H from "../assets/images/cards/9HH.webp";
+import S9D from "../assets/images/cards/9DD.webp";
+import S9C from "../assets/images/cards/9CC.webp";
+import S8S from "../assets/images/cards/8SS.webp";
+import S8H from "../assets/images/cards/8HH.webp";
+import S8D from "../assets/images/cards/8DD.webp";
+import S8C from "../assets/images/cards/8CC.webp";
+import S7S from "../assets/images/cards/7SS.webp";
+import S7H from "../assets/images/cards/7HH.webp";
+import S7D from "../assets/images/cards/7DD.webp";
+import S7C from "../assets/images/cards/7CC.webp";
+import S6S from "../assets/images/cards/6SS.webp";
+import S6H from "../assets/images/cards/6HH.webp";
+import S6D from "../assets/images/cards/6DD.webp";
+import S6C from "../assets/images/cards/6CC.webp";
+import S10S from "../assets/images/cards/10SS.webp";
+import S10H from "../assets/images/cards/10HH.webp";
+import S10D from "../assets/images/cards/10DD.webp";
+import S10C from "../assets/images/cards/10CC.webp";
 import closedCard from "../assets/images/closed-card.jpg";
+
+const cardImages = {
+  "QSS.webp": QSS, "QHH.webp": QHH, "QDD.webp": QDD, "QCC.webp": QCC,
+  "KSS.webp": KSS, "KHH.webp": KHH, "KDD.webp": KDD, "KCC.webp": KCC,
+  "JSS.webp": JSS, "JHH.webp": JHH, "JDD.webp": JDD, "JCC.webp": JCC,
+  "10SS.webp": S10S, "10HH.webp": S10H, "10DD.webp": S10D, "10CC.webp": S10C,
+  "9SS.webp": S9S, "9HH.webp": S9H, "9DD.webp": S9D, "9CC.webp": S9C,
+  "8SS.webp": S8S, "8HH.webp": S8H, "8DD.webp": S8D, "8CC.webp": S8C,
+  "7SS.webp": S7S, "7HH.webp": S7H, "7DD.webp": S7D, "7CC.webp": S7C,
+  "6SS.webp": S6S, "6HH.webp": S6H, "6DD.webp": S6D, "6CC.webp": S6C
+};
+
+// Card value and type arrays
+const cardValue = ["6", "7", "8", "9", "10", "J", "Q", "K"];
+const cardType = ["CC", "DD", "HH", "SS"];
+
+// Generate all possible card image filenames for these values/types
+const cardImageFiles = [];
+for (let v of cardValue) {
+  for (let t of cardType) {
+    let name = v;
+    if (["J", "Q", "K"].includes(v)) name = v;
+    cardImageFiles.push(`${name}${t}.webp`);
+  }
+}
 
 const oddsData = [
   { player: "Player 8", back: 12.2, lay: 13.7, odd: 1.97, even: 1.97 },
@@ -19,10 +78,52 @@ const cardLabels = [
   { label: "11+", count: 0 },
 ];
 
+function getRandomCards(arr, n) {
+  // Returns n unique random elements from arr
+  const copy = [...arr];
+  const result = [];
+  for (let i = 0; i < n && copy.length > 0; i++) {
+    const idx = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
 function GameScreen({ timer, stage }) {
   let gifToShow = welcomeGif;
   if (stage === 1) gifToShow = idleGif;
   if (stage === 2) gifToShow = clappingGif;
+
+  // For the first 30 seconds (stage 0), show closed cards and "please place bets now"
+  // After 30 seconds (stage 1 or 2), show 4 random cards instead of closed cards
+  const showRandomCards = stage !== 0;
+  // Memoize random cards for the round (changes only when stage goes from 0 to 1)
+  const randomCards = useMemo(() => {
+    if (showRandomCards) {
+      return getRandomCards(cardImageFiles, 4);
+    }
+    return [];
+  }, [showRandomCards]);
+
+  // Reveal cards one by one with 2s delay after showRandomCards becomes true
+  const [revealedCount, setRevealedCount] = useState(0);
+  useEffect(() => {
+    if (showRandomCards) {
+      setRevealedCount(0);
+      let i = 0;
+      const interval = setInterval(() => {
+        i++;
+        setRevealedCount((prev) => {
+          if (prev < 4) return prev + 1;
+          return prev;
+        });
+        if (i >= 4) clearInterval(interval);
+      }, 2000);
+      return () => clearInterval(interval);
+    } else {
+      setRevealedCount(0);
+    }
+  }, [showRandomCards, randomCards]);
 
   return (
     <div className="center-content">
@@ -47,7 +148,7 @@ function GameScreen({ timer, stage }) {
                 <div className="table-card" key={idx}>
                   <div className="card-label">{card.label}</div>
                   <img
-                    src={closedCard}
+                    src={showRandomCards && randomCards[idx] && idx < revealedCount && cardImages[randomCards[idx]] ? cardImages[randomCards[idx]] : closedCard}
                     alt="Card"
                     className="card-value-img"
                   />
@@ -60,6 +161,25 @@ function GameScreen({ timer, stage }) {
                 {String(timer).padStart(2, "0")}
               </span>
             </div>
+            {stage === 0 && (
+              <div
+                className="place-bets-now"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: '0px',
+                  margin: '0 auto',
+                  textAlign: 'center',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: 20,
+                  zIndex: 2
+                }}
+              >
+                please place bets now
+              </div>
+            )}
           </div>
         </div>
         <div className="odds-tables-wrap">
