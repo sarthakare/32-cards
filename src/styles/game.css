@@ -465,11 +465,29 @@
 }
 
 @media (max-width: 600px) {
-  .table-parent,
-  .table-cards {
+  .table-parent {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
     height: 60vw !important;
     min-height: 220px;
     max-height: 80vh;
+    margin: 0 auto;
+  }
+  .table-image,
+  .table-cards {
+    width: 100% !important;
+    height: 60vw !important;
+    min-height: 220px;
+    max-height: 80vh;
+  }
+  .flip-clock {
+    font-size: 1.4rem;
+    min-width: 36px;
+    padding: 0px 5px 0px 5px;
+    border-radius: 6px;
+    border-bottom-width: 2px;
+    border-top-width: 1px;
   }
 }
 
