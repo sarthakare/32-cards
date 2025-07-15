@@ -30,7 +30,7 @@ function Game() {
       if (timer === 1) {
         setTimeout(() => {
           setStage(1);
-          setTimer(10);
+          setTimer(15);
         }, 1000);
       }
     } else if (stage === 1 && timer > 0) {
