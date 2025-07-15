@@ -458,6 +458,12 @@
   margin-bottom: 0;
 }
 
+.table-cards > div:first-child {
+  height: 56%;
+  max-height: 56%;
+  box-sizing: border-box;
+}
+
 @media (max-width: 900px) {
   .sidebar {
     display: none !important;
@@ -481,6 +487,12 @@
     min-height: 220px;
     max-height: 80vh;
   }
+
+.table-cards > div:first-child {
+  height: 52%;
+  max-height: 52%;
+  box-sizing: border-box;
+}
   .flip-clock {
     font-size: 1.4rem;
     min-width: 36px;
@@ -488,6 +500,18 @@
     border-radius: 6px;
     border-bottom-width: 2px;
     border-top-width: 1px;
+  }
+
+  .table-card {
+    width: 16vw;
+    min-width: 24px;
+    max-width: 48px;
+    height: 28vw;
+    min-height: 36px;
+    max-height: 80px;
+    padding: 6px;
+    font-size: 3vw;
+    margin-top: 2.5vh;
   }
 }
 
