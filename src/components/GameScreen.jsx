@@ -240,7 +240,9 @@ function GameScreen({ timer, stage }) {
             })()}
             {stage === 0 && (
               <div className="placeBetsNow">
-                please place bets now
+                <span className="bets-icon" role="img" aria-label="bet">💰</span>
+                <span className="bets-text">Place Your Bets Now!</span>
+                <span className="bets-anim"></span>
               </div>
             )}
           </div>
