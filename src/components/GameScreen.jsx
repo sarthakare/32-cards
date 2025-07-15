@@ -141,7 +141,7 @@ function GameScreen({ timer, stage }) {
           return prev;
         });
         if (i >= 4) clearInterval(interval);
-      }, 2000);
+      }, 3000);
       return () => clearInterval(interval);
     } else {
       setRevealedCount(0);
