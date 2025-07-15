@@ -3,7 +3,7 @@
   height: 100vh;
   background: #181818;
   color: #fff;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .sidebar {
@@ -14,11 +14,6 @@
   align-items: center;
   padding-top: 16px;
   border-right: 2px solid #222;
-}
-
-.sidebar .logo {
-  width: 140px;
-  margin-bottom: 16px;
 }
 
 .sidebar .profile {
@@ -90,15 +85,6 @@
   border-bottom: 2px solid #222;
 }
 
-.topbar .search {
-  background: #292929;
-  border-radius: 6px;
-  padding: 6px 12px;
-  border: none;
-  width: 260px;
-  font-size: 1rem;
-  margin-right: 16px;
-}
 
 .topbar .open-bets {
   background: #007e00;
@@ -129,35 +115,6 @@
   overflow: hidden;
 }
 
-.game-card {
-  background: #222;
-  color: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.game-card img {
-  width: 80px;
-  height: 60px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.game-card .game-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.game-card .game-users {
-  margin-left: auto;
-  font-size: 0.95rem;
-  color: #ffcc33;
-}
 
 .table-area {
   flex: 1;
@@ -174,12 +131,14 @@
 
 .table-parent {
   position: relative;
-  width: 800px;
-  height: 400px;
+  width: 80vw;
+  max-width: 900px;
+  aspect-ratio: 2/1;
   margin: 24px auto 0 auto;
   display: flex;
   align-items: stretch;
   justify-content: center;
+  min-width: 320px;
 }
 
 .table-image {
@@ -187,7 +146,7 @@
   height: 100%;
   object-fit: cover;
   border-radius: 24px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
   display: block;
   position: relative;
   z-index: 1;
@@ -239,6 +198,7 @@
 
 .table-area .table-cards {
   width: 100%;
+  height: 100%;
   position: absolute;
   z-index: 2;
   pointer-events: none;
@@ -254,31 +214,44 @@
 }
 
 .table-cards-row .welcome-gif {
-  width: 100%;
-  height: 200px;
+  width: 30%;
+  max-width: 180px;
+  min-width: 60px;
+  height: auto;
+  aspect-ratio: 3/4;
   object-fit: contain;
   background: transparent;
-  margin-top: 3px;
+  padding-top: 4%;
 }
 
 .table-cards-row.cards-row {
   justify-content: center;
   width: 100%;
-  height: 200px;
-  margin-top: 30px;
-  gap: 10%;
+  height: 100%;
+  gap: 6vw;
+}
+
+.table-cards-row.cards-row img {
+  max-width: 60px;
+  max-height: 90px;
+  width: 100%;
+  height: auto;
 }
 
 .table-area .table-card {
-  border-radius: 12px;
-  width: 50px;
-  height: 100px;
+  border-radius: 1vw;
+  width: 7vw;
+  min-width: 36px;
+  max-width: 80px;
+  height: 14vw;
+  min-height: 60px;
+  max-height: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 1.2rem;
+  font-size: 1.2vw;
   position: relative;
 }
 
@@ -319,7 +292,7 @@
   font-weight: bold;
   border-radius: 12px;
   padding: 8px 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .table-timer {
@@ -334,13 +307,13 @@
 
 .flip-clock {
   display: inline-block;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 2.8rem;
   font-weight: bold;
   background: #222;
   color: #fff;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   padding: 0px 10px 0px 10px;
   letter-spacing: 2px;
   position: relative;
@@ -391,7 +364,8 @@
   font-size: 1rem;
 }
 
-.right-panel .my-bet-table th, .right-panel .my-bet-table td {
+.right-panel .my-bet-table th,
+.right-panel .my-bet-table td {
   padding: 8px 12px;
   border-bottom: 1px solid #ddd;
   text-align: left;
@@ -414,7 +388,8 @@
   font-size: 1rem;
 }
 
-.odds-table th, .odds-table td {
+.odds-table th,
+.odds-table td {
   padding: 8px 10px;
   border-bottom: 1px solid #333;
   text-align: center;
@@ -446,15 +421,6 @@
   color: #fff;
 }
 
-.card-value-img {
-  width: 38px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin: 8px 0;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.15);
-  background: #fff;
-}
 
 .menu-btn {
   display: none;
@@ -468,27 +434,6 @@
   cursor: pointer;
 }
 
-.logo-mobile {
-  display: none;
-  height: 36px;
-  margin-right: 12px;
-}
-
-.searchbar-area {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.search-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  display: flex;
-  align-items: center;
-}
 
 .odds-tables-wrap {
   display: flex;
@@ -514,107 +459,18 @@
 }
 
 @media (max-width: 900px) {
-  .game-container {
-    flex-direction: column;
-  }
   .sidebar {
-    display: none;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    width: 220px;
-    background: #111;
-    z-index: 100;
-    transition: transform 0.3s;
-    transform: translateX(-100%);
-  }
-  .sidebar.open {
-    display: flex;
-    flex-direction: column;
-    transform: translateX(0);
-    box-shadow: 2px 0 12px rgba(0,0,0,0.2);
-  }
-  .menu-btn {
-    display: flex;
-  }
-  .logo-mobile {
-    display: block;
-  }
-  .logo {
-    display: none;
-  }
-  .searchbar-area {
-    flex: 1;
-    justify-content: flex-end;
-  }
-  .search {
-    width: 100%;
-    min-width: 0;
-    max-width: 100vw;
-  }
-  .center-content {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100vw;
-    min-width: 0;
-  }
-  .right-panel {
     display: none !important;
-  }
-  .main-content {
-    width: 100vw;
-    min-width: 0;
-  }
-  .odds-tables-wrap {
-    flex-direction: column;
-    gap: 0;
-    align-items: stretch;
-  }
-  .odds-table {
-    width: 100vw !important;
-    max-width: 100vw;
-    min-width: 0;
-    margin-bottom: 12px;
-  }
-  .table-parent {
-    width: 100vw !important;
-    min-width: 0;
-    max-width: 100vw;
   }
 }
 
 @media (max-width: 600px) {
-  .table-parent {
-    height: 48vw;
-    max-height: 70vw;
-  }
-  .welcome-gif {
-    width: 60px;
-    height: 80px;
-  }
-  .table-card {
-    width: 60px;
-    height: 80px;
-    font-size: 0.8rem;
-  }
-  .card-value-img {
-    width: 24px;
-    height: 36px;
-  }
-  .table-header, .my-bet-header {
-    font-size: 0.95rem;
-    padding: 8px 8px;
-  }
-  .topbar {
-    flex-direction: row !important;
-    gap: 0 !important;
-    padding: 8px 8px;
-    align-items: center;
-    justify-content: flex-end;
-  }
-  .search {
-    width: 100%;
-    min-width: 0;
+  .table-parent,
+  .table-cards {
+    height: 60vw !important;
+    min-height: 220px;
+    max-height: 80vh;
   }
 }
+
+

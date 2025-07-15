@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../style/loadingscreen.css';
+import '../styles/loadingscreen.css';
 import vr32Cards from '../assets/images/loading_Screen.png';
 
 function LoadingScreen() {

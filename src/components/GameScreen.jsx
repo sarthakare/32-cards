@@ -1,5 +1,6 @@
 import crownImg from "../assets/images/crown.png";
 import React, { useMemo, useState, useEffect } from "react";
+import "../styles/GameScreen.css";
 import tableImg from "../assets/images/worli-bg.jpg";
 import newRoundImg from "../assets/images/New_Round.svg";
 import welcomeGif from "../assets/images/Indian01_Welcome.gif";
@@ -159,22 +160,11 @@ function GameScreen({ timer, stage }) {
             Round ID: V32C11751270914 | Player History
           </span>
         </div>
-        <div className="table-parent" style={{ position: 'relative' }}>
+        <div className="table-parent"> 
           {/* Show New Round image overlay for 3 seconds at round start */}
           {showNewRound && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 30,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.5)'
-            }}>
-              <img src={newRoundImg} alt="New Round" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <div className="newRoundOverlay">
+              <img src={newRoundImg} alt="New Round" className="newRoundImg" />
             </div>
           )}
           <img src={tableImg} alt="table" className="table-image" />
@@ -207,7 +197,7 @@ function GameScreen({ timer, stage }) {
                       alt="Card"
                       className="card-value-img"
                     />
-                    <div className="card-count" style={{ fontSize: 16, color: '#ff6600', fontWeight: 700 }}>
+                    <div className="cardCount">
                       {totalValue}
                     </div>
                   </div>
@@ -239,51 +229,17 @@ function GameScreen({ timer, stage }) {
               const winnerIdx = totals.indexOf(maxValue);
               const winnerLabel = cardLabels[winnerIdx]?.label || "";
               return (
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  background: 'rgba(0,0,0,0.5)',
-                  zIndex: 20,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '48px 64px',
-                    borderRadius: 24,
-                    background: 'rgba(0,0,0,0.7)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                  }}>
-                    <img src={crownImg} alt="Crown" style={{ width: 96, height: 96, marginBottom: 24 }} />
-                    <span style={{ fontSize: 48, color: '#ffd700', fontWeight: 900, letterSpacing: 2, marginBottom: 16, textShadow: '2px 2px 12px #000' }}>Winner</span>
-                    <span style={{ fontSize: 40, color: '#fff', fontWeight: 800, textShadow: '2px 2px 12px #000' }}>{winnerLabel}</span>
+                <div className="winnerOverlay">
+                  <div className="winnerBox">
+                    <img src={crownImg} alt="Crown" className="crownImg" />
+                    <span className="winnerTitle">Winner</span>
+                    <span className="winnerLabel">{winnerLabel}</span>
                   </div>
                 </div>
               );
             })()}
             {stage === 0 && (
-              <div
-                className="place-bets-now"
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: '0px',
-                  margin: '0 auto',
-                  textAlign: 'center',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  fontSize: 20,
-                  zIndex: 2
-                }}
-              >
+              <div className="placeBetsNow">
                 please place bets now
               </div>
             )}
@@ -332,7 +288,7 @@ function GameScreen({ timer, stage }) {
       {!isMobile && (
         <div className="right-panel">
           <div className="my-bet-header">
-            My Bet <span style={{ float: "right" }}>Bal:0</span>
+            My Bet <span className="myBetBalance">Bal:0</span>
           </div>
           <table className="my-bet-table">
             <thead>
