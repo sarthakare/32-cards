@@ -1,5 +1,5 @@
 import crownImg from "../assets/images/crown.png";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/GameScreen.css";
 import tableImg from "../assets/images/worli-bg.jpg";
 import newRoundImg from "../assets/images/New_Round.svg";
@@ -53,19 +53,24 @@ const cardImages = {
   "6SS.webp": S6S, "6HH.webp": S6H, "6DD.webp": S6D, "6CC.webp": S6C
 };
 
-// Card value and type arrays
-const cardValue = ["6", "7", "8", "9", "10", "J", "Q", "K"];
-const cardType = ["CC", "DD", "HH", "SS"];
 
-// Generate all possible card image filenames for these values/types
-const cardImageFiles = [];
-for (let v of cardValue) {
-  for (let t of cardType) {
-    let name = v;
-    if (["J", "Q", "K"].includes(v)) name = v;
-    cardImageFiles.push(`${name}${t}.webp`);
-  }
-}
+
+
+// Hardcoded card filenames for each label (first draw)
+const fixedCardFiles = [
+  "10SS.webp", // 8+
+  "JSS.webp",  // 9+
+  "KSS.webp",  // 10+
+  "QSS.webp"   // 11+
+];
+
+// For tie-breaker, new cards to draw (can be randomized or fixed for demo)
+const tieBreakerCardFiles = [
+  "6SS.webp", // 8+
+  "7SS.webp", // 9+
+  "8SS.webp", // 10+
+  "9SS.webp"  // 11+
+];
 
 const oddsData = [
   { player: "Player 8", back: 12.2, lay: 13.7, odd: 1.97, even: 1.97 },
@@ -81,18 +86,42 @@ const cardLabels = [
   { label: "11+", count: 11 },
 ];
 
-function getRandomCards(arr, n) {
-  // Returns n unique random elements from arr
-  const copy = [...arr];
-  const result = [];
-  for (let i = 0; i < n && copy.length > 0; i++) {
-    const idx = Math.floor(Math.random() * copy.length);
-    result.push(copy.splice(idx, 1)[0]);
-  }
-  return result;
-}
 
-function GameScreen({ timer, stage }) {
+
+function GameScreen() {
+  // Timer and stage logic moved from game.jsx
+  const [timer, setTimer] = useState(3);
+  const [stage, setStage] = useState(0); // 0: welcome, 1: idle, 2: clapping
+
+  useEffect(() => {
+    let interval;
+    if (stage === 0 && timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      if (timer === 1) {
+        setTimeout(() => {
+          setStage(1);
+          setTimer(15);
+        }, 1000);
+      }
+    } else if (stage === 1 && timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      if (timer === 1) {
+        setTimeout(() => {
+          setStage(2);
+          setTimer(5);
+        }, 1000);
+      }
+    } else if (stage === 2 && timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      if (timer === 1) {
+        setTimeout(() => {
+          setStage(0);
+          setTimer(3);
+        }, 1000);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [timer, stage]);
   // Responsive: detect mobile screen
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 900 : false);
   useEffect(() => {
@@ -117,36 +146,86 @@ function GameScreen({ timer, stage }) {
   if (stage === 1) gifToShow = idleGif;
   if (stage === 2) gifToShow = clappingGif;
 
-  // For the first 30 seconds (stage 0), show closed cards and "please place bets now"
-  // After 30 seconds (stage 1 or 2), show 4 random cards instead of closed cards
-  const showRandomCards = stage !== 0;
-  // Memoize random cards for the round (changes only when stage goes from 0 to 1)
-  const randomCards = useMemo(() => {
-    if (showRandomCards) {
-      return getRandomCards(cardImageFiles, 4);
-    }
-    return [];
-  }, [showRandomCards]);
 
-  // Reveal cards one by one with 2s delay after showRandomCards becomes true
-  const [revealedCount, setRevealedCount] = useState(0);
+
+  // Card reveal and tie-breaker logic (per-card reveal with delay)
+  const [revealedCards, setRevealedCards] = useState([false, false, false, false]);
+  const [tieBreakerActive, setTieBreakerActive] = useState(false);
+  const [tiedIndices, setTiedIndices] = useState([]);
+  // Track which cards have a tie-breaker card drawn (per index)
+  const [tieBreakerDrawn, setTieBreakerDrawn] = useState([false, false, false, false]);
+  const [winnerSelected, setWinnerSelected] = useState(false);
+
+  // Reveal cards one by one with 3 seconds delay when stage changes from 0 to 1
   useEffect(() => {
-    if (showRandomCards) {
-      setRevealedCount(0);
-      let i = 0;
-      const interval = setInterval(() => {
-        i++;
-        setRevealedCount((prev) => {
-          if (prev < 4) return prev + 1;
-          return prev;
+    let revealTimeouts = [];
+    if (stage === 1) {
+      setRevealedCards([false, false, false, false]);
+      setTieBreakerActive(false);
+      setTiedIndices([]);
+      setTieBreakerDrawn([false, false, false, false]);
+      setWinnerSelected(false);
+      // Reveal each card with 3s delay
+      for (let i = 0; i < 4; i++) {
+        revealTimeouts[i] = setTimeout(() => {
+          setRevealedCards(prev => {
+            const updated = [...prev];
+            updated[i] = true;
+            return updated;
+          });
+        }, 3000 * (i + 1));
+      }
+      // After all cards revealed, check for tie after a short delay
+      const afterRevealDelay = 3000 * 4 + 500;
+      const tieTimeout = setTimeout(() => {
+        const totals = cardLabels.map((card, idx) => {
+          let showValue = 0;
+          if (idx === 0) showValue = 10;
+          else if (idx === 1) showValue = 11;
+          else if (idx === 2) showValue = 13;
+          else if (idx === 3) showValue = 12;
+          return Number(card.count) + Number(showValue);
         });
-        if (i >= 4) clearInterval(interval);
-      }, 3000);
-      return () => clearInterval(interval);
+        const maxValue = Math.max(...totals);
+        const tied = totals
+          .map((val, idx) => (val === maxValue ? idx : -1))
+          .filter(idx => idx !== -1);
+        if (tied.length > 1) {
+          setTieBreakerActive(true);
+          setTiedIndices(tied);
+          // Increase timer when tie is detected
+          setTimer(prev => Math.max(prev, 10));
+          // Reveal tie-breaker cards one by one for tied indices
+          let tieBreakerTimeouts = [];
+          tied.forEach((tieIdx, i) => {
+            tieBreakerTimeouts[i] = setTimeout(() => {
+              setTieBreakerDrawn(prev => {
+                const updated = [...prev];
+                updated[tieIdx] = true;
+                return updated;
+              });
+            }, 3000 * (i + 1));
+          });
+          // After all tie-breaker cards revealed, select winner after a short delay
+          const afterTieBreakerDelay = 3000 * tied.length + 1000;
+          tieBreakerTimeouts.push(setTimeout(() => setWinnerSelected(true), afterTieBreakerDelay));
+        } else {
+          // No tie, select winner after 1s
+          setTimeout(() => setWinnerSelected(true), 1000);
+        }
+      }, afterRevealDelay);
+      revealTimeouts.push(tieTimeout);
     } else {
-      setRevealedCount(0);
+      setRevealedCards([false, false, false, false]);
+      setTieBreakerActive(false);
+      setTiedIndices([]);
+      setTieBreakerDrawn([false, false, false, false]);
+      setWinnerSelected(false);
     }
-  }, [showRandomCards, randomCards]);
+    return () => {
+      revealTimeouts.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [stage]);
 
   return (
     <div className="center-content">
@@ -174,29 +253,44 @@ function GameScreen({ timer, stage }) {
             </div>
             <div className="table-cards-row cards-row">
               {cardLabels.map((card, idx) => {
-                // Determine the value to show at card-count
+                // Hardcoded values for each card
                 let showValue = 0;
-                if (showRandomCards && randomCards[idx] && idx < revealedCount) {
-                  const file = randomCards[idx];
-                  let val = file.replace(/[^A-Z0-9]/gi, "").replace(/(CC|DD|HH|SS).*$/, "");
-                  if (["J"].includes(val)) showValue = 11;
-                  else if (["Q"].includes(val)) showValue = 12;
-                  else if (["K"].includes(val)) showValue = 13;
-                  else showValue = Number(val);
+                if (revealedCards[idx]) {
+                  if (idx === 0) showValue = 10;
+                  else if (idx === 1) showValue = 11;
+                  else if (idx === 2) showValue = 13;
+                  else if (idx === 3) showValue = 12;
                 }
-                // Add the default value from cardLabels to showValue, but only after reveal
-                let totalValue = 0;
-                if (showRandomCards && randomCards[idx] && idx < revealedCount) {
-                  totalValue = Number(card.count) + Number(showValue);
+                // Only tied cards get a tie-breaker card drawn beside them
+                const showTieBreaker = !!tieBreakerDrawn[idx];
+                let tieBreakerValue = 0;
+                if (showTieBreaker) {
+                  if (idx === 0) tieBreakerValue = 2;
+                  else if (idx === 1) tieBreakerValue = 3;
+                  else if (idx === 2) tieBreakerValue = 4;
+                  else if (idx === 3) tieBreakerValue = 5;
                 }
+                // For tied cards, add the drawn value to the initial value
+                let totalValue = revealedCards[idx] ? Number(card.count) + Number(showValue) + (showTieBreaker ? tieBreakerValue : 0) : 0;
+
                 return (
                   <div className="table-card" key={idx}>
                     <div className="card-label">{card.label}</div>
-                    <img
-                      src={showRandomCards && randomCards[idx] && idx < revealedCount && cardImages[randomCards[idx]] ? cardImages[randomCards[idx]] : closedCard}
-                      alt="Card"
-                      className="card-value-img"
-                    />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img
+                        src={revealedCards[idx] && cardImages[fixedCardFiles[idx]] ? cardImages[fixedCardFiles[idx]] : closedCard}
+                        alt="Card"
+                        className="card-value-img"
+                      />
+                      {showTieBreaker && (
+                        <img
+                          src={cardImages[tieBreakerCardFiles[idx]]}
+                          alt="Tie Breaker Card"
+                          className="card-value-img tie-breaker-img"
+                          style={{ marginLeft: 8 }}
+                        />
+                      )}
+                    </div>
                     <div className="cardCount">
                       {totalValue}
                     </div>
@@ -209,33 +303,42 @@ function GameScreen({ timer, stage }) {
                 {String(timer).padStart(2, "0")}
               </span>
             </div>
-            {/* Show crown and winner after all cards are revealed and clappingGif is shown */}
-            {stage === 2 && revealedCount >= 4 && (() => {
-              // Calculate total values for all cards
+            {/* Show crown and winner after all cards are revealed and tie-breaker (if any) is done */}
+            {winnerSelected && (() => {
+              // If tie-breaker is active and revealed, use tie-breaker values to determine winner
+              let winnerIdx = -1;
+              let winnerLabel = "";
+              // Always use the displayed totalValue for winner selection
               const totals = cardLabels.map((card, idx) => {
                 let showValue = 0;
-                if (showRandomCards && randomCards[idx]) {
-                  const file = randomCards[idx];
-                  let val = file.replace(/[^A-Z0-9]/gi, "").replace(/(CC|DD|HH|SS).*$/, "");
-                  if (["J"].includes(val)) showValue = 11;
-                  else if (["Q"].includes(val)) showValue = 12;
-                  else if (["K"].includes(val)) showValue = 13;
-                  else showValue = Number(val);
+                if (idx === 0) showValue = 10;
+                else if (idx === 1) showValue = 11;
+                else if (idx === 2) showValue = 13;
+                else if (idx === 3) showValue = 12;
+                let tieBreakerValue = 0;
+                if (tieBreakerDrawn[idx]) {
+                  if (idx === 0) tieBreakerValue = 2;
+                  else if (idx === 1) tieBreakerValue = 3;
+                  else if (idx === 2) tieBreakerValue = 4;
+                  else if (idx === 3) tieBreakerValue = 5;
                 }
-                return Number(card.count) + Number(showValue);
+                return Number(card.count) + Number(showValue) + tieBreakerValue;
               });
-              // Find the index of the highest total value
               const maxValue = Math.max(...totals);
-              const winnerIdx = totals.indexOf(maxValue);
-              const winnerLabel = cardLabels[winnerIdx]?.label || "";
+              const winnerIndex = totals.indexOf(maxValue);
+              const winnerLbl = cardLabels[winnerIndex]?.label || "";
               return (
-                <div className="winnerOverlay">
-                  <div className="winnerBox">
-                    <img src={crownImg} alt="Crown" className="crownImg" />
-                    <span className="winnerTitle">Winner</span>
-                    <span className="winnerLabel">{winnerLabel}</span>
+                <>
+                  <div className="winnerOverlay">
+                    <div className="winnerBox">
+                      <img src={crownImg} alt="Crown" className="crownImg" />
+                      <span className="winnerTitle">Winner</span>
+                      <span className="winnerLabel">{winnerLbl}</span>
+                    </div>
                   </div>
-                </div>
+                  {/* Show clapping gif after winner is selected */}
+                  <img src={clappingGif} alt="Clapping" className="winner-gif" style={{ position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%)', zIndex: 10, width: 120 }} />
+                </>
               );
             })()}
             {stage === 0 && (

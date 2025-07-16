@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../styles/game.css";
 import GameScreen from "../components/GameScreen";
 
@@ -18,42 +18,9 @@ const menuItems = [
 
 // ...existing code...
 
+
 function Game() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [timer, setTimer] = useState(30);
-  const [stage, setStage] = useState(0); // 0: welcome, 1: idle, 2: clapping
-
-  useEffect(() => {
-    let interval;
-    if (stage === 0 && timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-      if (timer === 1) {
-        setTimeout(() => {
-          setStage(1);
-          setTimer(15);
-        }, 1000);
-      }
-    } else if (stage === 1 && timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-      if (timer === 1) {
-        setTimeout(() => {
-          setStage(2);
-          setTimer(5);
-        }, 1000);
-      }
-    } else if (stage === 2 && timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-      if (timer === 1) {
-        setTimeout(() => {
-          setStage(0);
-          setTimer(30);
-        }, 1000);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [timer, stage]);
-
-  // ...existing code...
 
   return (
     <div className="game-container">
@@ -98,7 +65,7 @@ function Game() {
           </span>
         </div>
         {/* Center Content */}
-        <GameScreen timer={timer} stage={stage} />
+        <GameScreen />
       </div>
     </div>
   );
