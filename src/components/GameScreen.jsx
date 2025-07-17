@@ -58,10 +58,10 @@ const cardImages = {
 
 // Hardcoded card filenames for each label (first draw)
 const fixedCardFiles = [
-  "10SS.webp", // 8+
+  "10DD.webp", // 8+
   "JSS.webp",  // 9+
-  "KSS.webp",  // 10+
-  "QSS.webp"   // 11+
+  "KHH.webp",  // 10+
+  "QCC.webp"   // 11+
 ];
 
 // For tie-breaker, new cards to draw (can be randomized or fixed for demo)
@@ -85,7 +85,6 @@ const cardLabels = [
   { label: "10+", count: 10 },
   { label: "11+", count: 11 },
 ];
-
 
 
 function GameScreen() {
@@ -150,8 +149,6 @@ function GameScreen() {
 
   // Card reveal and tie-breaker logic (per-card reveal with delay)
   const [revealedCards, setRevealedCards] = useState([false, false, false, false]);
-  const [tieBreakerActive, setTieBreakerActive] = useState(false);
-  const [tiedIndices, setTiedIndices] = useState([]);
   // Track which cards have a tie-breaker card drawn (per index)
   const [tieBreakerDrawn, setTieBreakerDrawn] = useState([false, false, false, false]);
   const [winnerSelected, setWinnerSelected] = useState(false);
@@ -161,8 +158,6 @@ function GameScreen() {
     let revealTimeouts = [];
     if (stage === 1) {
       setRevealedCards([false, false, false, false]);
-      setTieBreakerActive(false);
-      setTiedIndices([]);
       setTieBreakerDrawn([false, false, false, false]);
       setWinnerSelected(false);
       // Reveal each card with 3s delay
@@ -191,8 +186,6 @@ function GameScreen() {
           .map((val, idx) => (val === maxValue ? idx : -1))
           .filter(idx => idx !== -1);
         if (tied.length > 1) {
-          setTieBreakerActive(true);
-          setTiedIndices(tied);
           // Increase timer when tie is detected
           setTimer(prev => Math.max(prev, 10));
           // Reveal tie-breaker cards one by one for tied indices
@@ -217,8 +210,6 @@ function GameScreen() {
       revealTimeouts.push(tieTimeout);
     } else {
       setRevealedCards([false, false, false, false]);
-      setTieBreakerActive(false);
-      setTiedIndices([]);
       setTieBreakerDrawn([false, false, false, false]);
       setWinnerSelected(false);
     }
@@ -305,9 +296,6 @@ function GameScreen() {
             </div>
             {/* Show crown and winner after all cards are revealed and tie-breaker (if any) is done */}
             {winnerSelected && (() => {
-              // If tie-breaker is active and revealed, use tie-breaker values to determine winner
-              let winnerIdx = -1;
-              let winnerLabel = "";
               // Always use the displayed totalValue for winner selection
               const totals = cardLabels.map((card, idx) => {
                 let showValue = 0;
