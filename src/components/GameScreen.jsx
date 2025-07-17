@@ -65,11 +65,21 @@ const fixedCardFiles = [
 ];
 
 // For tie-breaker, new cards to draw (can be randomized or fixed for demo)
+// For tie-breaker, new cards to draw (specific for tie demo)
+// Only 10+ and 11+ will show tie-breaker cards, others will be undefined
 const tieBreakerCardFiles = [
-  "6SS.webp", // 8+
-  "7SS.webp", // 9+
-  "8SS.webp", // 10+
-  "9SS.webp"  // 11+
+  undefined, // 8+
+  undefined, // 9+
+  "9SS.webp", // 10+ (value 9)
+  "9HH.webp"  // 11+ (value 9)
+];
+
+// Third tie-breaker round cards (for 10+ and 11+)
+const thirdTieBreakerCardFiles = [
+  undefined, // 8+
+  undefined, // 9+
+  "8SS.webp", // 10+ (value 8)
+  "7SS.webp"  // 11+ (value 7)
 ];
 
 const oddsData = [
@@ -152,6 +162,9 @@ function GameScreen() {
   // Track which cards have a tie-breaker card drawn (per index)
   const [tieBreakerDrawn, setTieBreakerDrawn] = useState([false, false, false, false]);
   const [winnerSelected, setWinnerSelected] = useState(false);
+  // Track if third tie-breaker is needed and drawn
+  const [thirdTieBreakerDrawn, setThirdTieBreakerDrawn] = useState([false, false, false, false]);
+  const [finalWinnerSelected, setFinalWinnerSelected] = useState(false);
 
   // Reveal cards one by one with 3 seconds delay when stage changes from 0 to 1
   useEffect(() => {
@@ -160,6 +173,8 @@ function GameScreen() {
       setRevealedCards([false, false, false, false]);
       setTieBreakerDrawn([false, false, false, false]);
       setWinnerSelected(false);
+      setThirdTieBreakerDrawn([false, false, false, false]);
+      setFinalWinnerSelected(false);
       // Reveal each card with 3s delay
       for (let i = 0; i < 4; i++) {
         revealTimeouts[i] = setTimeout(() => {
@@ -199,9 +214,49 @@ function GameScreen() {
               });
             }, 3000 * (i + 1));
           });
-          // After all tie-breaker cards revealed, select winner after a short delay
+          // After all tie-breaker cards revealed, check if tie again
           const afterTieBreakerDelay = 3000 * tied.length + 1000;
-          tieBreakerTimeouts.push(setTimeout(() => setWinnerSelected(true), afterTieBreakerDelay));
+          tieBreakerTimeouts.push(setTimeout(() => {
+            // Calculate new totals for tie-breaker
+            const tieBreakerTotals = cardLabels.map((card, idx) => {
+              let showValue = 0;
+              if (idx === 0) showValue = 10;
+              else if (idx === 1) showValue = 11;
+              else if (idx === 2) showValue = 13;
+              else if (idx === 3) showValue = 12;
+              let tieBreakerValue = 0;
+              if (tieBreakerDrawn[idx]) {
+                if (idx === 2) tieBreakerValue = 9; // 10+ gets 9SS.webp
+                else if (idx === 3) tieBreakerValue = 9; // 11+ gets 9HH.webp
+              }
+              return Number(card.count) + Number(showValue) + tieBreakerValue;
+            });
+            // Check if 10+ and 11+ are tied again
+            const tbMax = Math.max(...tieBreakerTotals);
+            const tbTied = tieBreakerTotals
+              .map((val, idx) => (val === tbMax ? idx : -1))
+              .filter(idx => idx !== -1);
+            if (tbTied.length > 1 && tbTied.includes(2) && tbTied.includes(3)) {
+              // Draw third tie-breaker for 10+ and 11+
+              setTimer(prev => Math.max(prev, 10)); // Add 10 seconds to timer for third tie-breaker
+              let thirdTieBreakerTimeouts = [];
+              [2, 3].forEach((tieIdx, i) => {
+                thirdTieBreakerTimeouts[i] = setTimeout(() => {
+                  setThirdTieBreakerDrawn(prev => {
+                    const updated = [...prev];
+                    updated[tieIdx] = true;
+                    return updated;
+                  });
+                }, 3000 * (i + 1));
+              });
+              // After third tie-breaker, select final winner
+              const afterThirdTieBreakerDelay = 3000 * 2 + 1000;
+              thirdTieBreakerTimeouts.push(setTimeout(() => setFinalWinnerSelected(true), afterThirdTieBreakerDelay));
+            } else {
+              // No tie, select winner
+              setWinnerSelected(true);
+            }
+          }, afterTieBreakerDelay));
         } else {
           // No tie, select winner after 1s
           setTimeout(() => setWinnerSelected(true), 1000);
@@ -212,6 +267,8 @@ function GameScreen() {
       setRevealedCards([false, false, false, false]);
       setTieBreakerDrawn([false, false, false, false]);
       setWinnerSelected(false);
+      setThirdTieBreakerDrawn([false, false, false, false]);
+      setFinalWinnerSelected(false);
     }
     return () => {
       revealTimeouts.forEach(timeout => clearTimeout(timeout));
@@ -256,13 +313,20 @@ function GameScreen() {
                 const showTieBreaker = !!tieBreakerDrawn[idx];
                 let tieBreakerValue = 0;
                 if (showTieBreaker) {
-                  if (idx === 0) tieBreakerValue = 2;
-                  else if (idx === 1) tieBreakerValue = 3;
-                  else if (idx === 2) tieBreakerValue = 4;
-                  else if (idx === 3) tieBreakerValue = 5;
+                  if (idx === 2) tieBreakerValue = 9; // 10+ gets 9SS.webp
+                  else if (idx === 3) tieBreakerValue = 9; // 11+ gets 9HH.webp
                 }
-                // For tied cards, add the drawn value to the initial value
-                let totalValue = revealedCards[idx] ? Number(card.count) + Number(showValue) + (showTieBreaker ? tieBreakerValue : 0) : 0;
+                // Third tie-breaker
+                const showThirdTieBreaker = !!thirdTieBreakerDrawn[idx];
+                let thirdTieBreakerValue = 0;
+                if (showThirdTieBreaker) {
+                  if (idx === 2) thirdTieBreakerValue = 8; // 10+ gets 8SS.webp
+                  else if (idx === 3) thirdTieBreakerValue = 7; // 11+ gets 7SS.webp
+                }
+                // For tied cards, add the drawn value(s) to the initial value
+                let totalValue = revealedCards[idx]
+                  ? Number(card.count) + Number(showValue) + (showTieBreaker ? tieBreakerValue : 0) + (showThirdTieBreaker ? thirdTieBreakerValue : 0)
+                  : 0;
 
                 return (
                   <div className="table-card" key={idx}>
@@ -276,9 +340,17 @@ function GameScreen() {
                       {showTieBreaker && (
                         <img
                           src={cardImages[tieBreakerCardFiles[idx]]}
-                          alt="Tie Breaker Card"
+                          alt={`Tie Breaker: ${tieBreakerCardFiles[idx] || ''}`}
                           className="card-value-img tie-breaker-img"
-                          style={{ marginLeft: 8 }}
+                          style={{ marginLeft: 2 }}
+                        />
+                      )}
+                      {showThirdTieBreaker && (
+                        <img
+                          src={cardImages[thirdTieBreakerCardFiles[idx]]}
+                          alt={`3rd Tie Breaker: ${thirdTieBreakerCardFiles[idx] || ''}`}
+                          className="card-value-img tie-breaker-img"
+                          style={{ marginLeft: 2, border: '2px solid gold' }}
                         />
                       )}
                     </div>
@@ -305,10 +377,8 @@ function GameScreen() {
                 else if (idx === 3) showValue = 12;
                 let tieBreakerValue = 0;
                 if (tieBreakerDrawn[idx]) {
-                  if (idx === 0) tieBreakerValue = 2;
-                  else if (idx === 1) tieBreakerValue = 3;
-                  else if (idx === 2) tieBreakerValue = 4;
-                  else if (idx === 3) tieBreakerValue = 5;
+                  if (idx === 2) tieBreakerValue = 9; // 10+ gets 9SS.webp
+                  else if (idx === 3) tieBreakerValue = 9; // 11+ gets 9HH.webp
                 }
                 return Number(card.count) + Number(showValue) + tieBreakerValue;
               });
@@ -325,6 +395,42 @@ function GameScreen() {
                     </div>
                   </div>
                   {/* Show clapping gif after winner is selected */}
+                  <img src={clappingGif} alt="Clapping" className="winner-gif" style={{ position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%)', zIndex: 10, width: 120 }} />
+                </>
+              );
+            })()}
+            {/* Final winner after third tie-breaker */}
+            {finalWinnerSelected && (() => {
+              const totals = cardLabels.map((card, idx) => {
+                let showValue = 0;
+                if (idx === 0) showValue = 10;
+                else if (idx === 1) showValue = 11;
+                else if (idx === 2) showValue = 13;
+                else if (idx === 3) showValue = 12;
+                let tieBreakerValue = 0;
+                if (tieBreakerDrawn[idx]) {
+                  if (idx === 2) tieBreakerValue = 9;
+                  else if (idx === 3) tieBreakerValue = 9;
+                }
+                let thirdTieBreakerValue = 0;
+                if (thirdTieBreakerDrawn[idx]) {
+                  if (idx === 2) thirdTieBreakerValue = 8;
+                  else if (idx === 3) thirdTieBreakerValue = 7;
+                }
+                return Number(card.count) + Number(showValue) + tieBreakerValue + thirdTieBreakerValue;
+              });
+              const maxValue = Math.max(...totals);
+              const winnerIndex = totals.indexOf(maxValue);
+              const winnerLbl = cardLabels[winnerIndex]?.label || "";
+              return (
+                <>
+                  <div className="winnerOverlay">
+                    <div className="winnerBox">
+                      <img src={crownImg} alt="Crown" className="crownImg" />
+                      <span className="winnerTitle">Winner</span>
+                      <span className="winnerLabel">{winnerLbl}</span>
+                    </div>
+                  </div>
                   <img src={clappingGif} alt="Clapping" className="winner-gif" style={{ position: 'absolute', left: '50%', top: '60%', transform: 'translate(-50%, -50%)', zIndex: 10, width: 120 }} />
                 </>
               );
